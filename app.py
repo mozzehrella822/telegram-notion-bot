@@ -23,7 +23,7 @@ def insert_notion(title: str) -> str:
     payload = {
         "parent": {"database_id": NOTION_DB_ID},
         "properties": {
-            "Name": {
+            "Item": {
                 "title": [{"text": {"content": title}}]
             }
         }
