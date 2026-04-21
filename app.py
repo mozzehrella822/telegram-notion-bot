@@ -49,8 +49,6 @@ def send_message(chat_id: int, text: str):
 @app.route("/webhook", methods=["POST"])
 def webhook():
     data = request.json
-
-    # Ignore anything that isn't a plain text message
     message = data.get("message", {})
     text = message.get("text", "").strip()
     chat_id = message.get("chat", {}).get("id")
@@ -58,13 +56,30 @@ def webhook():
     if not text or not chat_id:
         return "ok", 200
 
-    # Ignore bot commands
+    if chat_id != ALLOWED_CHAT_ID:
+        send_message(chat_id, "Unauthorized.")
+        return "ok", 200
+
     if text.startswith("/"):
         send_message(chat_id, "Send me any text and I'll add it to Notion.")
         return "ok", 200
 
-    result = insert_notion(text)
-    send_message(chat_id, result)
+    # Split by line breaks, filter out empty lines
+    tasks = [line.strip() for line in text.splitlines() if line.strip()]
+
+    results = []
+    for task in tasks:
+        results.append(insert_notion(task))
+
+    # Count successes
+    success = sum(1 for r in results if r.startswith("✅"))
+    fail = len(results) - success
+
+    if fail == 0:
+        send_message(chat_id, f"✅ {success} task(s) added to Notion.")
+    else:
+        send_message(chat_id, f"✅ {success} added, ❌ {fail} failed.")
+
     return "ok", 200
 
 
