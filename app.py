@@ -56,10 +56,6 @@ def webhook():
     if not text or not chat_id:
         return "ok", 200
 
-    if chat_id != ALLOWED_CHAT_ID:
-        send_message(chat_id, "Unauthorized.")
-        return "ok", 200
-
     if text.startswith("/"):
         send_message(chat_id, "Send me any text and I'll add it to Notion.")
         return "ok", 200
